@@ -45,7 +45,7 @@ async function ticketMigration({ start, end }) {
     let tickets = JSON.parse(ticketsData)
       // ?.slice(start, end);
       ?.slice(0, 1);
-    // tickets = []
+    tickets = ["500Jw00000nAfCCIA0"]
 
     if (!tickets) {
       console.error("No tickets data found for migration.");
@@ -174,9 +174,9 @@ async function ticketMigration({ start, end }) {
                   ERROR_LOG
                 );
 
-                if (!!commentData.destinationId) {
+                if (commentData?.destinationId) {
                   console.log(`Destination ID Exists For Comment: ${comment[commentIdKey]}`);
-                  writeIDLog(COMMENT_CREATED_LOG, `${commentData.sourceId}: ${commentData.destinationId},`);
+                  writeIDLog(COMMENT_CREATED_LOG, `${commentData?.sourceId}: ${commentData?.destinationId},`);
                   continue;
                 }
 
