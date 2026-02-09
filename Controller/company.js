@@ -106,7 +106,7 @@ async function companyMigration() {
       return result;
     };
 
-    const CONCURRENCY = 5;
+    const CONCURRENCY = 100;
     for (let i = 0; i < orgsData.length; i += CONCURRENCY) {
       const batch = orgsData.slice(i, i + CONCURRENCY);
       const results = await Promise.all(batch.map(org => migrateOne(org)));
