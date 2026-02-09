@@ -366,7 +366,6 @@ FodyWeavers.xsd
 
 # Logs
 TicketData/
-Tickets/
 Logs/
 Logs1/
 Logs1_Old/
