@@ -56,7 +56,7 @@ const scanDynamo = async (tableName) => {
     //   return acc;
     // }, {});
 
-    // writeFileSync(fileName, JSON.stringify(filtered, null, 2));
+    writeFileSync(fileName, JSON.stringify(filtered, null, 2));
     console.log(`${fileName} created with entries:`, filtered.length);
   } catch (err) {
     console.error("Error fetching data:", err);

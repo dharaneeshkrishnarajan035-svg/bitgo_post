@@ -21,8 +21,14 @@
     "scandynamo": "node script.js scandynamo",
     "createcount": "node script.js createcount",
     "generateagentids": "node script.js generateagentids",
-    "migrateticket:server1" : "node server.js migrateticket --env=server1 --start=0 --end=1",
-    "migrateticket:server2" : "node script.js migrateticket --env=server2 --start=0 --end=1"
+    "migrateticket:server1": "node server.js migrateticket --env=server1 --start=0 --end=40000",
+    "migrateticket:server2": "node script.js migrateticket --env=server2 --start=40000 --end=80000",
+    "migrateticket:server3": "node script.js migrateticket --env=server3 --start=80000 --end=120000",
+    "migrateticket:server4": "node script.js migrateticket --env=server4 --start=120000 --end=160000",
+    "migrateticket:server5": "node script.js migrateticket --env=server5 --start=160000 --end=200000",
+    "migrateticket:server6": "node script.js migrateticket --env=server6 --start=200000 --end=240000",
+    "migrateticket:server7": "node script.js migrateticket --env=server7 --start=240000 --end=280000",
+    "migrateticket:server8": "node script.js migrateticket --env=server8 --start=280000 --end=320000"
   },
   "keywords": [],
   "author": "",

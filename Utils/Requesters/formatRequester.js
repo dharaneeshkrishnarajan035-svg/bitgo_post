@@ -14,6 +14,56 @@ const destType = "fDFieldType";
 const sourceKey = "sFFieldKey";
 const destKey = "fDFieldKey";
 
+function getCleanName(name) {
+  if (!name || typeof name !== 'string') return 'Unknown Requester';
+
+  let clean = name.trim();
+
+  // 1. Replace double quotes (") with single quotes (')
+  // This fixes "Beatrice O"Carroll" -> "Beatrice O'Carroll"
+  clean = clean.replace(/"/g, "'");
+
+  // 2. Remove characters that are commonly flagged in names (like < > ; or URLs)
+  // We keep letters, numbers, spaces, and basic name punctuation (. , - ')
+  clean = clean.replace(/[^a-zA-Z0-9\s.\-']/g, '');
+
+  // 3. Freshdesk sometimes flags multiple dots or trailing symbols
+  clean = clean.replace(/\.\.+/g, '.');
+
+  return clean || 'Unknown Requester';
+}
+
+function getCleanEmail(email) {
+  if (!email || typeof email !== 'string') return null;
+
+  // 1. Convert to lowercase and trim whitespace
+  let clean = email.toLowerCase().trim();
+
+  // 2. Remove any characters that aren't letters, numbers, or @ . _ - +
+  // This specifically targets the '?' in your "x?@x.com" example
+  clean = clean.replace(/[^a-z0-9@._\-+]/gi, '');
+
+  // 3. Basic structural check (must have @ and .)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  return emailRegex.test(clean) ? clean : null;
+}
+
+function isFreshdeskSafeEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+
+  const cleanEmail = email.toLowerCase().trim();
+
+  // 1. Check for Punycode/International domains (The xn-- issue)
+  if (cleanEmail.includes('xn--')) return false;
+
+  // 2. Strict Regex: Only allows standard alphanumeric, dots, hyphens, and underscores.
+  // TLD must be standard alphabetic (a-z) only.
+  const strictRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+
+  return strictRegex.test(cleanEmail);
+}
+
 const buildPayloadFromModule = (moduleRow) => {
   const DEFAULT_TIMEZONE = "UTC";
   const payload = {};
@@ -141,6 +191,17 @@ const formatRequesterPayload = async (
   try {
     const payload = buildPayloadFromModule(userData);
     writeLog(OVERALL_LOG, `User Data payload : ${JSON.stringify(payload)}`);
+
+    payload["name"] = getCleanName(payload["name"]);
+
+    if (payload["email"] && !isFreshdeskSafeEmail(payload["email"])) {
+      if (isFreshdeskSafeEmail(getCleanEmail(payload["email"]))) {
+        payload["email"] = getCleanEmail(payload["email"])
+      } else {
+        payload["unique_external_id"] = userData?.Id;
+        delete payload["email"];
+      }
+    }
 
     return payload;
   } catch (error) {

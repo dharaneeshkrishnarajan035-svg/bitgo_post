@@ -55,7 +55,7 @@ switch (cmd) {
     break;
 
   case "migrateagent":
-    agentMigration("0051U000000LGDoQAO");
+    agentMigration();
     break;
 
   case "migrategroup":
@@ -63,7 +63,7 @@ switch (cmd) {
     break;
 
   case "migraterequester":
-    const response = requesterMigration("005Jw000003Wei9IAC");
+    const response = requesterMigration();
     break;
 
   case "migrateticketfield":

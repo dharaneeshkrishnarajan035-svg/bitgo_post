@@ -42,22 +42,10 @@ async function ticketMigration({ start, end }) {
     //Fetch Org DynamoDB Data
     const ticketsData = await fs.promises.readFile(process.env.TICKET_ID_FILE, 'utf-8');
 
-    let tickets = JSON.parse(ticketsData)?.slice(0, 1);
-    tickets = ["500Ro00000pq7PrIAI"]
-    // [
-    //   "500Jw00000nAfCCIA0",
-    //   "500Jw00000cSzCMIA0",
-    //   "500Jw00000E1Iu6IAF",
-    //   "500Jw00000EqVkPIAV",
-    //   "500Jw00000gqxANIAY",
-    //   "500Jw00000kjzBJIAY",
-    //   "500Jw00000lN8jPIAS",
-    //   "500Jw00000qUv8IIAS",
-    //   "500Jw000009u7PsIAI",
-    //   // "500Jw000009weO7IAI",
-    //   // "500Ro00000peZrKIAU"
-    // ]
-    //["500Ro00000pcHDpIAM",]//tickets.slice(10);
+    let tickets = JSON.parse(ticketsData)
+      // ?.slice(start, end);
+      ?.slice(0, 1);
+    // tickets = []
 
     if (!tickets) {
       console.error("No tickets data found for migration.");
@@ -89,17 +77,17 @@ async function ticketMigration({ start, end }) {
       console.log(`Processing Ticket ID: ${ticket} - At ${tickets.indexOf(ticket)}`);
       writeIDLog(TICKET_PROCESSED_LOG, `Processing Ticket ID: ${ticket} - At ${tickets.indexOf(ticket)}`);
 
-      // if (!!ticketData.destinationId) {
-      //   console.log(`Destination ID Exists For: ${ticket}`);
-      //   writeIDLog(TICKET_EXISTS_LOG, `${ticketData.sourceId}: ${ticketData.destinationId},`);
-      //   continue;
-      // }
+      if (!!ticketData?.destinationId) {
+        console.log(`Destination ID Exists For: ${ticket}`);
+        writeIDLog(TICKET_EXISTS_LOG, `${ticketData.sourceId}: ${ticketData.destinationId},`);
+        continue;
+      }
 
-      // if (ticketData.sourceData.Status !== 'Closed' && ticketData.sourceData.Status !== 'Resolved') {
-      //   console.log(`Ticket Not Cloed: ${ticket} - ${ticketData.sourceData.Status}`);
-      //   writeIDLog(NOT_CLOSED_TICKETS_LOG, `${ticketData.sourceId} - ${ticketData.sourceData.Status}`);
-      //   continue;
-      // }
+      if (ticketData.sourceData.Status !== 'Closed' && ticketData.sourceData.Status !== 'Resolved') {
+        console.log(`Ticket Not Cloed: ${ticket} - ${ticketData.sourceData.Status}`);
+        writeIDLog(NOT_CLOSED_TICKETS_LOG, `${ticketData.sourceId} - ${ticketData.sourceData.Status}`);
+        continue;
+      }
 
       writeLog(OVERALL_LOG, `Processing Ticket SourceID : ${ticketData.sourceData[ticketIdKey]}`);
       writeLog(ERROR_LOG, `Processing Ticket SourceID : ${ticketData.sourceData[ticketIdKey]}`);
@@ -121,15 +109,15 @@ async function ticketMigration({ start, end }) {
           writeLog(OVERALL_LOG, `✅ Ticket Source ID : ${ticketData.sourceData[ticketIdKey]} Created ID: ${destTicketId}`);
           writeIDLog(TICKET_CREATED_LOG, `"${ticketData.sourceData[ticketIdKey]}": ${destTicketId},`);
 
-          // await updateDestinationId(
-          //   TIC_TABLE,
-          //   ticketData.sourceData.Id,
-          //   destTicketId,
-          //   true,
-          //   "Ticket",
-          //   OVERALL_LOG,
-          //   ERROR_LOG
-          // );
+          await updateDestinationId(
+            TIC_TABLE,
+            ticketData.sourceData.Id,
+            destTicketId,
+            true,
+            "Ticket",
+            OVERALL_LOG,
+            ERROR_LOG
+          );
 
           const commentPath = path.join(
             process.env.TICKET_ATTACHMENT_PATH,
@@ -137,10 +125,8 @@ async function ticketMigration({ start, end }) {
           );
 
           let commentData = [];
-          if (fs.existsSync(commentPath)) {
-            // commentData = JSON.parse(fs.readFileSync(commentPath, "utf8"));
+          if (fs.existsSync(commentPath))
             commentData = readDecryptedData(commentPath, ERROR_LOG);
-          }
 
           console.log("Comments Count", commentData.length);
           const comments = commentData;
@@ -154,17 +140,17 @@ async function ticketMigration({ start, end }) {
 
             for (let i = 1; i < commentData.length; i += CONCURRENCY) {
               const batch = commentData.slice(i, i + CONCURRENCY);
-              // await Promise.all(batch.map(comment =>
-              //   insertUpdateData(
-              //     COMMENTS_TABLE,
-              //     comment[commentIdKey],
-              //     { created_at: comment[commentCreatedAtKey] },
-              //     null,
-              //     'Notes',
-              //     OVERALL_LOG,
-              //     ERROR_LOG
-              //   )
-              // ));
+              await Promise.all(batch.map(comment =>
+                insertUpdateData(
+                  COMMENTS_TABLE,
+                  comment[commentIdKey],
+                  { created_at: comment[commentCreatedAtKey] },
+                  null,
+                  'Notes',
+                  OVERALL_LOG,
+                  ERROR_LOG
+                )
+              ));
             }
 
             for (const comment of comments) {
@@ -178,25 +164,21 @@ async function ticketMigration({ start, end }) {
                   ERROR_LOG
                 );
 
-                // let commentData = await fetchParticularRow(
-                //   COMMENTS_TABLE,
-                //   "sourceId",
-                //   comment[commentIdKey],
-                //   sortKey = null,
-                //   sortValue = null,
-                //   OVERALL_LOG,
-                //   ERROR_LOG
-                // );
+                let commentData = await fetchParticularRow(
+                  COMMENTS_TABLE,
+                  "sourceId",
+                  comment[commentIdKey],
+                  sortKey = null,
+                  sortValue = null,
+                  OVERALL_LOG,
+                  ERROR_LOG
+                );
 
-                // if (!!commentData.destinationId) {
-                //   console.log(`Destination ID Exists For Comment: ${comment[commentIdKey]}`);
-                //   writeIDLog(COMMENT_CREATED_LOG, `${commentData.sourceId}: ${commentData.destinationId},`);
-                //   continue;
-                // }
-
-                // console.log("commentPayload", commentPayload);
-                // continue;
-                // if (!commentPayload?.body.includes(`We have deactivated your user account as per your request.`)) continue;
+                if (!!commentData.destinationId) {
+                  console.log(`Destination ID Exists For Comment: ${comment[commentIdKey]}`);
+                  writeIDLog(COMMENT_CREATED_LOG, `${commentData.sourceId}: ${commentData.destinationId},`);
+                  continue;
+                }
 
                 const destCommentId = await createComment(
                   commentPayload,
@@ -208,20 +190,20 @@ async function ticketMigration({ start, end }) {
                 );
 
                 if (destCommentId) {
-                  // await updateDestinationId(
-                  //   COMMENTS_TABLE,
-                  //   comment[commentIdKey],
-                  //   destCommentId,
-                  //   true,
-                  //   "Notes",
-                  //   OVERALL_LOG,
-                  //   ERROR_LOG
-                  // );
+                  await updateDestinationId(
+                    COMMENTS_TABLE,
+                    comment[commentIdKey],
+                    destCommentId,
+                    true,
+                    "Notes",
+                    OVERALL_LOG,
+                    ERROR_LOG
+                  );
 
                   writeLog(OVERALL_LOG, `✅ Comment Source ID : ${comment[commentIdKey]} Created ID: ${destCommentId}`);
-                  writeIDLog(COMMENT_CREATED_LOG, `${comment[commentIdKey]}: ${destCommentId},`);
+                  writeIDLog(COMMENT_CREATED_LOG, `"${comment[commentIdKey]}": ${destCommentId},`);
                 } else {
-                  writeIDLog(COMMENT_NOT_CREATED_LOG, `${comment[commentIdKey]},`);
+                  writeIDLog(COMMENT_NOT_CREATED_LOG, `"${comment[commentIdKey]}",`);
                 }
               } catch (error) {
                 const frames = error.stack
