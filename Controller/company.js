@@ -31,7 +31,7 @@ async function companyMigration() {
     }
 
     let orgsData = JSON.parse(orgsPath);
-    orgsData = orgsData.slice(10);
+    orgsData = orgsData.slice(11);
 
     writeLog(OVERALL_LOG, `Total Organizations to Migrate : ${orgsData.length}`);
     writeLog(ERROR_LOG, `Total Organizations to Migrate : ${orgsData.length}`);
