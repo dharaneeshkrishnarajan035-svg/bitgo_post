@@ -11,7 +11,7 @@ const {
 
 const { formatRequesterPayload } = require("../Utils/Requesters/formatRequester");
 const { createRequester } = require("../Utils/Requesters/createRequester");
-const { writeLog, getSalesforceAccessToken, fetchSalesforceData } = require('../Functions/commonFunctions');
+const { writeLog, getSalesforceAccessToken, fetchSalesforceData, writeIDLog } = require('../Functions/commonFunctions');
 const { getValidAccessToken } = require("../Utils/getAccessToken");
 
 const REQUESTER_TABLE = process.env.AWS_SOURCE_USERS_TABLE;
@@ -47,14 +47,14 @@ async function requesterMigration(singleUserId = null) {
       userIds = [singleUserId];
     } else {
       const userIdData = await fs.promises.readFile(process.env.REQUESTER_ID_FILE, 'utf-8');
-      userIds = (JSON.parse(userIdData) ?? [])//.slice(0, 1);
+      userIds = (JSON.parse(userIdData) ?? []).slice(0, 10);
     }
 
     writeLog(OVERALL_LOG, `Total Requesters to Migrate : ${userIds.length}`);
     writeLog(ERROR_LOG, `Total Requesters to Migrate : ${userIds.length}`);
 
     const migrateOne = async (userId) => {
-      let result = { success: 0, failure: 0, sourceId: userId, destinationId: null };
+      let result = { success: 0, failure: 0, sourceId: userId, destinationId: null, exist: 0 };
 
       writeLog(OVERALL_LOG, '━'.repeat(40), '\n\n');
       writeLog(ERROR_LOG, '━'.repeat(40), '\n\n');
@@ -70,6 +70,14 @@ async function requesterMigration(singleUserId = null) {
         ERROR_LOG
       );
 
+      if (rawUserData?.destinationId) {
+        console.log(`✌️ Requester already exists in the destination; "${rawUserData?.sourceId}": ${rawUserData?.destinationId}`);
+
+        result.exist += 1;
+        result.destinationId = rawUserData?.destinationId;
+        return result;
+      }
+
       let userData = {};
       if (rawUserData) {
         userData = rawUserData // unmarshall(rawUserData);
@@ -84,6 +92,14 @@ async function requesterMigration(singleUserId = null) {
           OVERALL_LOG,
           ERROR_LOG
         );
+
+        if (rawUserData?.destinationId) {
+          console.log(`✌️ Requester already exists in the destination; "${rawUserData?.sourceId}": ${rawUserData?.destinationId}`);
+
+          result.exist += 1;
+          result.destinationId = rawUserData?.destinationId;
+          return result;
+        }
 
         if (rawUserData) {
           userData = rawUserData
@@ -176,7 +192,7 @@ async function requesterMigration(singleUserId = null) {
           console.error("dont know what happended ", requesterId)
           result.failure = 1;
           writeLog(ERROR_LOG, `Error Creating Requester :SourceID : ${userData.sourceData[requesterIdKey]} reponse: ${requesterId}`);
-          writeLog(REQUESTER_NOT_CREATED_LOG, ` Requester Created Failed:SourceID : ${userData.sourceData[requesterIdKey]} reponse: ${requesterId}`);
+          writeIDLog(REQUESTER_NOT_CREATED_LOG, `${userData.sourceData[requesterIdKey]}`);
         }
       } catch (error) {
         const frames = error.stack

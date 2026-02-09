@@ -21,7 +21,7 @@ const createRequester = async (sourceId, requesterData, OVERALL_LOG, ERROR_LOG) 
 
   while (retry < maxRetries) {
     try {
-      console.log({ requesterData });
+      // console.log({ requesterData });
 
       const response = await axios.post(BASE_URL, requesterData, { headers });
 

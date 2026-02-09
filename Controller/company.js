@@ -31,7 +31,7 @@ async function companyMigration() {
     }
 
     let orgsData = JSON.parse(orgsPath);
-    orgsData = orgsData.slice(11);
+    // orgsData = orgsData.slice(0, 1);
 
     writeLog(OVERALL_LOG, `Total Organizations to Migrate : ${orgsData.length}`);
     writeLog(ERROR_LOG, `Total Organizations to Migrate : ${orgsData.length}`);
@@ -49,8 +49,8 @@ async function companyMigration() {
         ERROR_LOG
       );
 
-      if (rawOrgData?.desinationId) {
-        console.log(`✅ Company already exisits in the destination; "${orgData?.Id}": ${companyId}`);
+      if (rawOrgData?.destinationId) {
+        console.log(`✌️ Company already exists in the destination; "${rawOrgData?.sourceId}": ${rawOrgData?.destinationId}`);
 
         result.exist += 1;
         return result;
