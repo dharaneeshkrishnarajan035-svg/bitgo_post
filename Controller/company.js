@@ -37,7 +37,7 @@ async function companyMigration() {
     writeLog(ERROR_LOG, `Total Organizations to Migrate : ${orgsData.length}`);
 
     const migrateOne = async (orgId) => {
-      let result = { success: 0, failure: 0 };
+      let result = { success: 0, failure: 0, exist: 0 };
 
       let rawOrgData = await fetchParticularRow(
         COMPANY_TABLE,
@@ -48,6 +48,13 @@ async function companyMigration() {
         OVERALL_LOG,
         ERROR_LOG
       );
+
+      if (rawOrgData?.desinationId) {
+        console.log(`✅ Company already exisits in the destination; "${orgData?.Id}": ${companyId}`);
+
+        result.exist += 1;
+        return result;
+      }
 
       // console.log({ rawOrgData });
 
@@ -68,9 +75,9 @@ async function companyMigration() {
         const companyId = await createCompanyInFreshdesk(orgData?.Id, companyPayload, OVERALL_LOG, ERROR_LOG);
 
         if (companyId) {
-          console.log(`✅ Company ${orgData?.Name} created: ${companyId}`);
+          console.log(`✅ Company ${orgData?.Id} created: ${companyId}`);
           writeIDLog(CREATED_LOG, `"${orgData?.Id}": ${companyId},`);
-          writeLog(OVERALL_LOG, `✅ Company Source ID: ${orgData?.Name} Destination Id: ${companyId}`);
+          writeLog(OVERALL_LOG, `✅ Company Source ID: ${orgData?.Id} Destination Id: ${companyId}`);
 
           await updateDestinationId(
             COMPANY_TABLE,
@@ -84,6 +91,7 @@ async function companyMigration() {
 
           result.success += 1;
         } else {
+          writeIDLog(NOT_CREATED_LOG, `"${orgData?.Id}"`);
           result.failure += 1;
         }
       } catch (error) {
