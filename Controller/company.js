@@ -31,7 +31,7 @@ async function companyMigration() {
     }
 
     let orgsData = JSON.parse(orgsPath);
-    orgsData = orgsData.slice(1, 2);
+    orgsData = orgsData.slice(10);
 
     writeLog(OVERALL_LOG, `Total Organizations to Migrate : ${orgsData.length}`);
     writeLog(ERROR_LOG, `Total Organizations to Migrate : ${orgsData.length}`);
@@ -49,7 +49,7 @@ async function companyMigration() {
         ERROR_LOG
       );
 
-      console.log({ rawOrgData });
+      // console.log({ rawOrgData });
 
       const orgData = rawOrgData?.sourceData;
 
@@ -61,27 +61,31 @@ async function companyMigration() {
 
       const companyPayload = formatCompanyPayload(orgData, OVERALL_LOG, ERROR_LOG);
       writeLog(OVERALL_LOG, `Formatted Company Payload : ${JSON.stringify(companyPayload)}`);
-      console.log({ orgData, companyPayload });
-      return;
+      // console.log({ orgData, companyPayload });
+      // return;
 
       try {
         const companyId = await createCompanyInFreshdesk(orgData?.Id, companyPayload, OVERALL_LOG, ERROR_LOG);
-        console.log(`✅ Company ${orgData?.Name} created: ${companyId}`);
 
-        writeLog(CREATED_LOG, `${orgData?.Name}: ${companyId}`);
-        writeLog(OVERALL_LOG, `✅ Company Source ID: ${orgData?.Name} Destination Id: ${companyId}`);
+        if (companyId) {
+          console.log(`✅ Company ${orgData?.Name} created: ${companyId}`);
+          writeIDLog(CREATED_LOG, `"${orgData?.Id}": ${companyId},`);
+          writeLog(OVERALL_LOG, `✅ Company Source ID: ${orgData?.Name} Destination Id: ${companyId}`);
 
-        await updateDestinationId(
-          COMPANY_TABLE,
-          orgId,
-          companyId,
-          true,
-          "Company",
-          OVERALL_LOG,
-          ERROR_LOG
-        );
+          await updateDestinationId(
+            COMPANY_TABLE,
+            orgId,
+            companyId,
+            true,
+            "Company",
+            OVERALL_LOG,
+            ERROR_LOG
+          );
 
-        result.success = 1;
+          result.success += 1;
+        } else {
+          result.failure += 1;
+        }
       } catch (error) {
         const frames = error.stack
           .split("\n")

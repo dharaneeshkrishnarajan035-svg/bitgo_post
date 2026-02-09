@@ -97,7 +97,7 @@ const formatCompanyPayload = (moduleRow, OVERALL_LOG, ERROR_LOG) => {
       return map[key] ? map[key](value) : value;
     };
 
-    console.log({ moduleRow });
+    // console.log({ moduleRow });
 
     companyFieldMapping.forEach((map) => {
       const rawValue = moduleRow[map[sourceKey]];

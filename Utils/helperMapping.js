@@ -616,7 +616,7 @@ const companyFieldMapping = [
     "sFFieldKey": "BitGo_Entity__c",
     "sFFieldType": "picklist",
     "fDField": "BitGo Entity",
-    "fDFieldKey": "cf_bitgo_entity",
+    "fDFieldKey": "bitgo_entity",
     "fDFieldType": "dropdown",
     "isDefaultField": false
   },
@@ -5095,7 +5095,7 @@ const ticketFieldMapping = [
     "isDefaultField": false
   },
   {
-    "sFField": "Case Group", 
+    "sFField": "Case Group",
     "sFFieldKey": "svc_Group__c",
     "sFFieldType": "picklist",
     "fDField": "Case Group",
