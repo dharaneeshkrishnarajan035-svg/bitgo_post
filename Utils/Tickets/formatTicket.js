@@ -182,6 +182,9 @@ const formatTicket = async (moduleRow, sourceId, OVERALL_LOG, ERROR_LOG) => {
             } else if (moduleRow["SuppliedEmail"]) {
               payload.email = moduleRow?.SuppliedEmail;
               payload.name = moduleRow?.SuppliedName ?? moduleRow?.SuppliedEmail;
+            } else if (moduleRow["svc_Requester__c"]) {
+              payload.email = moduleRow?.svc_Requester__c;
+              payload.name = moduleRow?.svc_Requester__c?.split('@')[0].split(/[._-]/).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') ?? "Migrated User";
             } else {
               payload[map[destKey]] = DEFAULT_REQUESTER_ID;
             }
